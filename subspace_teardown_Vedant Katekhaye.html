@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Subspace.money — Product Teardown 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0f0e0c;
+    --paper: #f5f2ed;
+    --accent: #4338ca;
+    --accent-light: #e0e7ff;
+    --red: #dc2626;
+    --red-light: #fee2e2;
+    --green: #16a34a;
+    --green-light: #dcfce7;
+    --amber: #d97706;
+    --amber-light: #fef3c7;
+    --muted: #6b6b6b;
+    --border: #d6d0c8;
+    --card: #ffffff;
+    --serif: 'DM Serif Display', Georgia, serif;
+    --sans: 'DM Sans', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15.5px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---- COVER ---- */
+  .cover {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 72px 64px 56px;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover::before {
+    content: '';
+    position: absolute;
+    top: -120px; right: -120px;
+    width: 520px; height: 520px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #4338ca55 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .cover-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #a89f95;
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .cover-label::before {
+    content: '';
+    display: inline-block;
+    width: 28px; height: 1px;
+    background: #a89f95;
+  }
+  .cover h1 {
+    font-family: var(--serif);
+    font-size: clamp(42px, 6vw, 72px);
+    font-weight: 400;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin-bottom: 20px;
+  }
+  .cover h1 em {
+    font-style: italic;
+    color: #a5b4fc;
+  }
+  .cover-sub {
+    font-size: 16px;
+    color: #c9c4bc;
+    max-width: 560px;
+    margin-bottom: 56px;
+    font-weight: 300;
+  }
+  .cover-meta {
+    display: flex;
+    gap: 40px;
+    flex-wrap: wrap;
+    border-top: 1px solid #2e2e2e;
+    padding-top: 32px;
+  }
+  .meta-item { display: flex; flex-direction: column; gap: 4px; }
+  .meta-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #6b6b6b; }
+  .meta-val { font-size: 14px; color: #e8e4df; font-weight: 500; }
+
+  /* ---- NAV BAR ---- */
+  .pillars-bar {
+    background: var(--accent);
+    padding: 0 64px;
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+  }
+  .pill {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #c7d2fe;
+    padding: 14px 20px;
+    white-space: nowrap;
+    border-right: 1px solid #4f46e5;
+  }
+  .pill.active { background: #3730a3; color: #fff; }
+
+  /* ---- LAYOUT ---- */
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 48px;
+  }
+
+  /* ---- SECTION HEADERS ---- */
+  .section-header {
+    padding: 64px 0 0;
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+  .fb-number {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--accent);
+    background: var(--accent-light);
+    width: 40px; height: 40px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 8px;
+    margin-top: 4px;
+  }
+  .section-header-right { display: flex; flex-direction: column; gap: 6px; }
+  .pillar-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .section-title {
+    font-family: var(--serif);
+    font-size: clamp(22px, 3.5vw, 30px);
+    font-weight: 400;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+  }
+
+  /* ---- FEEDBACK BLOCKS ---- */
+  .feedback-grid {
+    margin-top: 28px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--card);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+
+  .fb-row {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    border-bottom: 1px solid var(--border);
+  }
+  .fb-row:last-child { border-bottom: none; }
+
+  .fb-label-cell {
+    padding: 24px 20px;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: var(--paper);
+  }
+  .fb-label-icon { font-size: 18px; }
+  .fb-label-name {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  .fb-label-name.observed { color: var(--accent); }
+  .fb-label-name.problem { color: var(--red); }
+  .fb-label-name.ship { color: var(--green); }
+
+  .fb-content-cell {
+    padding: 24px 28px;
+    font-size: 14.5px;
+    line-height: 1.7;
+    color: #1a1a1a;
+  }
+
+  .fb-observed { background: #fafbff; }
+  .fb-problem { background: #fffbfb; }
+  .fb-ship { background: #f8fff9; }
+
+  /* ---- DIVIDER ---- */
+  .divider {
+    margin: 48px 0 0;
+    border: none;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ---- HIGHLIGHT CALLOUT ---- */
+  .callout {
+    margin-top: 16px;
+    padding: 14px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: var(--mono);
+    line-height: 1.55;
+  }
+  .callout-red { background: var(--red-light); border-left: 3px solid var(--red); color: #7f1d1d; }
+  .callout-green { background: var(--green-light); border-left: 3px solid var(--green); color: #14532d; }
+  .callout-amber { background: var(--amber-light); border-left: 3px solid var(--amber); color: #78350f; }
+  .callout-blue { background: var(--accent-light); border-left: 3px solid var(--accent); color: #1e1b4b; }
+
+  /* ---- QUOTE ---- */
+  .user-quote {
+    margin: 14px 0;
+    padding: 16px 20px;
+    background: #f8f7f4;
+    border-left: 3px solid var(--border);
+    border-radius: 0 6px 6px 0;
+    font-size: 13.5px;
+    font-style: italic;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .user-quote cite {
+    display: block;
+    font-style: normal;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    color: #9e9e9e;
+    margin-top: 8px;
+  }
+
+  /* ---- COMPETITOR TABLE ---- */
+  .comp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+    margin-top: 16px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .comp-table th {
+    background: var(--ink);
+    color: var(--paper);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 12px 16px;
+    text-align: left;
+  }
+  .comp-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+  .comp-table tr:last-child td { border-bottom: none; }
+  .comp-table tr:nth-child(even) td { background: #fafaf8; }
+
+  .badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+  .badge-red { background: var(--red-light); color: var(--red); }
+  .badge-green { background: var(--green-light); color: var(--green); }
+  .badge-amber { background: var(--amber-light); color: var(--amber); }
+  .badge-blue { background: var(--accent-light); color: var(--accent); }
+
+  /* ---- SUMMARY TABLE ---- */
+  .summary-section {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 64px;
+    margin-top: 80px;
+  }
+  .summary-title {
+    font-family: var(--serif);
+    font-size: 36px;
+    font-weight: 400;
+    font-style: italic;
+    margin-bottom: 40px;
+    color: #c7d2fe;
+  }
+  .summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  .summary-card {
+    background: #1a1a1a;
+    border: 1px solid #2e2e2e;
+    border-radius: 10px;
+    padding: 24px;
+  }
+  .summary-card-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: #a5b4fc;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .summary-card-title {
+    font-family: var(--serif);
+    font-size: 18px;
+    font-weight: 400;
+    color: var(--paper);
+    margin-bottom: 8px;
+    line-height: 1.2;
+  }
+  .summary-card-fix {
+    font-size: 13px;
+    color: #a89f95;
+    line-height: 1.55;
+  }
+
+  /* ---- SWOT ---- */
+  .swot-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 16px;
+  }
+  .swot-cell {
+    padding: 16px 18px;
+    border-radius: 8px;
+    font-size: 13.5px;
+    line-height: 1.6;
+  }
+  .swot-cell h4 {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    font-weight: 500;
+  }
+  .swot-cell ul { padding-left: 18px; }
+  .swot-cell li { margin-bottom: 4px; }
+  .swot-s { background: #f0fdf4; border: 1px solid #86efac; }
+  .swot-s h4 { color: var(--green); }
+  .swot-w { background: #fff7ed; border: 1px solid #fdba74; }
+  .swot-w h4 { color: var(--amber); }
+  .swot-o { background: #eff6ff; border: 1px solid #93c5fd; }
+  .swot-o h4 { color: #1d4ed8; }
+  .swot-t { background: #fef2f2; border: 1px solid #fca5a5; }
+  .swot-t h4 { color: var(--red); }
+
+  /* ---- FOOTER ---- */
+  .footer {
+    padding: 40px 64px;
+    background: #0f0e0c;
+    color: #4a4a4a;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  /* ---- STARS ---- */
+  .star-row { display: flex; gap: 3px; font-size: 14px; }
+  .star { color: #d97706; }
+  .star-empty { color: #d1d5db; }
+
+  /* ---- RESPONSIVE ---- */
+  @media (max-width: 700px) {
+    .cover { padding: 40px 24px 36px; }
+    .container { padding: 0 24px; }
+    .pillars-bar { padding: 0 24px; }
+    .fb-row { grid-template-columns: 1fr; }
+    .fb-label-cell { border-right: none; border-bottom: 1px solid var(--border); }
+    .summary-grid { grid-template-columns: 1fr; }
+    .swot-grid { grid-template-columns: 1fr; }
+    .summary-section { padding: 40px 24px; }
+    .footer { flex-direction: column; gap: 12px; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ======================== COVER ======================== -->
+<div class="cover">
+  <div class="cover-label">Product Intern Assignment · 2026</div>
+  <h1>Subspace.money<br><em>Product Teardown</em></h1>
+  <p class="cover-sub">Five sharp, evidence-backed feedbacks across Product Pillars — with observations from live app usage, Play Store signals, and competitive landscape analysis.</p>
+  <div class="cover-meta">
+    <div class="meta-item">
+      <span class="meta-label">Company</span>
+      <span class="meta-val">Subspace.money</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">ARR (FY25)</span>
+      <span class="meta-val">₹36.5 Cr</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Play Store Rating</span>
+      <span class="meta-val">3.6 / 5 (3.2K reviews)</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Submitted</span>
+      <span class="meta-val">31 May 2026</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Frameworks Used</span>
+      <span class="meta-val">Porter's Five Forces · JTBD · SWOT</span>
+    </div>
+  </div>
+</div>
+
+<!-- ======================== PILLAR BAR ======================== -->
+<div class="pillars-bar">
+  <div class="pill active">UX</div>
+  <div class="pill">Features / Services</div>
+  <div class="pill">GTM & ICPs</div>
+  <div class="pill">Competitor Analysis</div>
+  <div class="pill">Potential Collaborations</div>
+</div>
+
+<!-- ======================== MAIN CONTENT ======================== -->
+<div class="container">
+
+  <!-- ===== FB 1: UX ===== -->
+  <div class="section-header">
+    <div class="fb-number">01</div>
+    <div class="section-header-right">
+      <span class="pillar-tag">Pillar — UX</span>
+      <h2 class="section-title">The Trust Layer Is a Group Chat.<br>That's a Product Failure.</h2>
+    </div>
+  </div>
+
+  <div class="feedback-grid">
+    <div class="fb-row fb-observed">
+      <div class="fb-label-cell">
+        <span class="fb-label-icon">👁</span>
+        <span class="fb-label-name observed">Observed</span>
+      </div>
+      <div class="fb-content-cell">
+        When a subscription group goes public on Subspace, the admin's instructions (per their own blog) literally read: <strong>"Retrieve emails from them in the 'chat' section. Also share your credentials in the chat section."</strong> There is no credential vault, no automated access delivery, no escrow for payment, no verification that members can actually log in before funds are released to the admin. The entire "trust" mechanism is a group chat message.
+        <div class="user-quote">
+          "I am taking a subscription to Amazon Prime — now he logged out of me from the id and subscription doesn't refund the amount. Not responding to my text and call."
+          <cite>— 1-star Play Store review, Feb 2026 (1 of dozens with the same complaint)</cite>
+        </div>
+        <div class="user-quote">
+          "An admin removed me from a group because I requested an OTP twice after Amazon logged me out automatically."
+          <cite>— 2-star review, Feb 2026</cite>
+        </div>
+      </div>
+    </div>
+
+    <div class="fb-row fb-problem">
+      <div class="fb-label-cell">
+        <span class="fb-label-icon">🔴</span>
+        <span class="fb-label-name problem">Problem</span>
+      </div>
+      <div class="fb-content-cell">
+        <strong>Subspace earns its commission the moment payment is made, but takes zero accountability for whether access is actually delivered.</strong> This is an asymmetric risk structure: the admin keeps earnings even if they revoke access; Subspace keeps fees even if the user never logs in. The 3.6-star rating — in a category where trust is literally the product — is the direct cost of this architecture gap.
+        <div class="callout callout-red">
+          ⚡ Business risk: Each bad public-group experience costs Subspace ~4–5 users (the kicked member's network sees 1-star reviews). Churn from trust failures is Subspace's biggest silent CAC multiplier.
+        </div>
+      </div>
+    </div>
+
+    <div class="fb-row fb-ship">
+      <div class="fb-label-cell">
+        <span class="fb-label-icon">🚀</span>
+        <span class="fb-label-name ship">Ship Instead</span>
+      </div>
+      <div class="fb-content-cell">
+        <strong>Build a Credential Vault with payment escrow.</strong>
+        <ol style="padding-left:20px; margin-top:10px; line-height:2.1;">
+          <li>Admin deposits credentials once (encrypted, server-side) during group creation.</li>
+          <li>On member payment, Subspace auto-delivers credentials via one-time masked link — no chat needed.</li>
+          <li>Member payment is held in escrow for 48 hours; released to admin only after a successful "access verified" ping or no dispute is raised.</li>
+          <li>Auto-freeze admin payouts if 2+ members report a login failure within 30 days.</li>
+        </ol>
+        <div class="callout callout-green">
+          ✅ This turns Subspace's arbitration risk into a moat: no competitor offers mediated access delivery. The vault feature can be tiered — free for public groups, premium for admins managing 10+ paid members.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ===== FB 2: FEATURES ===== -->
+  <div class="section-header">
+    <div class="fb-number">02</div>
+    <div class="section-header-right">
+      <span class="pillar-tag">Pillar — Features / Services</span>
+      <h2 class="section-title">The "Auto-Detection" Feature Is<br>Manual Data Entry in Disguise.</h2>
+    </div>
+  </div>
+
+  <div class="feedback-grid">
+    <div class="fb-row fb-observed">
+      <div class="fb-label-cell">
+        <span class="fb-label-icon">👁</span>
+        <span class="fb-label-name observed">Observed</span>
+      </div>
+      <div class="fb-content-cell">
+        Subspace's marketing copy prominently advertises <strong>"auto-detection & categorization of recurring payments via API."</strong> But per their own tutorial blog and the app's track-subscription flow, adding a subscription requires the user to: (1) open the app, (2) search for the service, (3) manually select the plan tier, and (4) manually enter the expiry date. Nothing is auto-detected. The "API" refers to a B2B Negotiate API for price negotiations with brands — not a bank-SMS or UPI feed that detects your subscriptions automatically.
+        <div class="callout callout-amber">
+          🔍 Tested: After logging in via WhatsApp OTP, the home screen shows an empty "Track Subscription" flow with a search bar. No bank integration prompt, no SMS-read permission request, no UPI transaction import.
+        </div>
+      </div>
+    </div>
+
+    <div class="fb-row fb-problem">
+      <div class="fb-label-cell">
+        <span class="fb-label-icon">🔴</span>
+        <span class="fb-label-name problem">Problem</span>
+      </div>
+      <div class="fb-content-cell">
+        <strong>The "budget-conscious tracker" ICP — who downloads the app to understand where their money is going — will churn at first use.</strong> Competitor products like CRED Mint (launched 2022) and PhonePe's subscription dashboard both pull recurring payments automatically from bank statement analysis or UPI history. Manual entry means most users add 2–3 subscriptions, forget about it, and never return. The engagement loop that would justify the app's presence on the home screen simply doesn't fire.
+      </div>
+    </div>
+
+    <div class="fb-row fb-ship">
+      <div class="fb-label-cell">
+        <span class="fb-label-icon">🚀</span>
+        <span class="fb-label-name ship">Ship Instead</span>
+      </div>
+      <div class="fb-content-cell">
+        <strong>Three-pronged auto-detect strategy (in order of effort):</strong>
+        <ol style="padding-left:20px; margin-top:10px; line-height:2.2;">
+          <li><strong>SMS parsing (Week 1–4):</strong> Request SMS read permission on app open. Parse bank debit SMSes matching known subscription merchant names (Netflix, Spotify, Jio, etc.) and auto-populate the tracker. Android's SMS Retriever API makes this frictionless.</li>
+          <li><strong>UPI transaction pull (Month 2):</strong> Integrate with Account Aggregator framework (NBFC-AA license or partner with Setu/Perfios) to pull 3 months of UPI transactions and tag recurring ones.</li>
+          <li><strong>"Smart Remind" notification (Quick win):</strong> Even without auto-detection, Subspace can send "Did you recently renew Spotify? Tap to add it." push notifications on the 1st of every month — a nudge-based alternative that reduces cold-start friction immediately.</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ===== FB 3: GTM ===== -->
+  <div class="section-header">
+    <div class="fb-number">03</div>
+    <div class="section-header-right">
+      <span class="pillar-tag">Pillar — GTM & ICPs</span>
+      <h2 class="section-title">One Homepage Is Selling Two<br>Completely Different Products to Nobody.</h2>
+    </div>
+  </div>
+
+  <div class="feedback-grid">
+    <div class="fb-row fb-observed">
+      <div class="fb-label-cell">
+        <span class="fb-label-icon">👁</span>
+        <span class="fb-label-name observed">Observed</span>
+      </div>
+      <div class="fb-content-cell">
+        Landing on <strong>subspace.money</strong>, the very first element a visitor encounters is <strong>"Delivery in minutes — Select Location"</strong> — a city-location picker for gadget/accessory rentals. Below that is a login form with the tagline <em>"Your subscription management platform."</em> The Play Store description leads with: <em>"Rent gadgets, accessories and essentials with 10-minute delivery."</em> The home tab inside the app mixes OTT subscription deals with physical item rentals (power banks, chargers, etc.).
+        <div class="callout callout-amber">
+          🔍 Two distinct use cases coexist: (A) Young urban consumer wanting cheap Netflix/Spotify access and (B) Someone who urgently needs a charger in 10 minutes. These have entirely different search intent, CAC, LTV, and trust requirements.
+        </div>
+      </div>
+    </div>
+
+    <div class="fb-row fb-problem">
+      <div class="fb-label-cell">
+        <span class="fb-label-icon">🔴</span>
+        <span class="fb-label-name problem">Problem</span>
+      </div>
+      <div class="fb-content-cell">
+        <strong>The ICP is fragmented, which means marketing spend and onboarding copy are optimised for no one in particular.</strong> The rental business requires city-level logistics operations and is geographically restricted. The subscription business is nationwide, digital, and already doing ₹36.5Cr ARR. By leading with rentals (the smaller, logistics-heavy, city-limited SKU), Subspace is presenting its most complex, low-scale, high-friction product to every first-time visitor — including users in cities where rentals don't even operate.
+        <p style="margin-top:10px;">Using a JTBD lens: the job <em>"help me save on subscriptions"</em> and the job <em>"deliver me a charger in 10 minutes"</em> are completely different, hired by different people, in different contexts, with different alternatives.</p>
+      </div>
+    </div>
+
+    <div class="fb-row fb-ship">
+      <div class="fb-label-cell">
+        <span class="fb-label-icon">🚀</span>
+        <span class="fb-label-name ship">Ship Instead</span>
+      </div>
+      <div class="fb-content-cell">
+        <strong>Separate the GTM motions immediately:</strong>
+        <ul style="padding-left:20px; margin-top:10px; line-height:2.2;">
+          <li><strong>Homepage hero = Subscriptions.</strong> Lead with the value prop: <em>"Netflix Premium at ₹129/month. With friends."</em> Move the location picker to a "Rent" tab — only shown to users in eligible cities after city detection.</li>
+          <li><strong>Define two distinct ICPs with separate acquisition channels:</strong>
+            <ul style="padding-left:16px; margin-top:4px;">
+              <li><em>ICP-A (Subscription Saver):</em> College students, 18–28, tier-1/2 cities. Channel: college communities, YouTube/Instagram reels on "save money on OTT."</li>
+              <li><em>ICP-B (Rental User):</em> Urban professionals, Bengaluru/Mumbai/Delhi-specific. Channel: hyperlocal Google Ads, Swiggy Instamart comparison ads.</li>
+            </ul>
+          </li>
+          <li><strong>Run a 2-week A/B test:</strong> Clean subscription-only landing page vs. current mixed homepage. Measure D1 retention and conversion to first subscription purchase.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SWOT context -->
+  <div style="margin-top: 20px;">
+    <div class="swot-grid">
+      <div class="swot-cell swot-s">
+        <h4>Strengths</h4>
+        <ul>
+          <li>₹36.5Cr ARR, bootstrapped & profitable</li>
+          <li>India's only subscription marketplace for local providers</li>
+          <li>Unique Negotiate API for price discovery</li>
+        </ul>
+      </div>
+      <div class="swot-cell swot-w">
+        <h4>Weaknesses</h4>
+        <ul>
+          <li>Fragmented product identity (subscriptions + rentals + gift cards)</li>
+          <li>Trust deficit in P2P sharing (3.6 stars)</li>
+          <li>Manual subscription tracking vs. auto-detect competitors</li>
+        </ul>
+      </div>
+      <div class="swot-cell swot-o">
+        <h4>Opportunities</h4>
+        <ul>
+          <li>India's OTT market growing 20%+ YoY</li>
+          <li>120M+ students as untapped ICP-A cohort</li>
+          <li>B2B marketplace for local subscription businesses</li>
+        </ul>
+      </div>
+      <div class="swot-cell swot-t">
+        <h4>Threats</h4>
+        <ul>
+          <li>Netflix/Prime account-sharing crackdowns</li>
+          <li>CRED, PhonePe entering subscription tracking</li>
+          <li>Legal ambiguity of credential-sharing model</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ===== FB 4: COMPETITORS ===== -->
+  <div class="section-header">
+    <div class="fb-number">04</div>
+    <div class="section-header-right">
+      <span class="pillar-tag">Pillar — Competitor Analysis</span>
+      <h2 class="section-title">The Real Existential Threat Isn't<br>myPaisaa. It's Netflix's Engineering Team.</h2>
+    </div>
+  </div>
+
+  <div class="feedback-grid">
+    <div class="fb-row fb-observed">
+      <div class="fb-label-cell">
+        <span class="fb-label-icon">👁</span>
+        <span class="fb-label-name observed">Observed</span>
+      </div>
+      <div class="fb-content-cell">
+        Subspace's listed competitors (per Tracxn) are <strong>myPaisaa, MoneyClub, and Finlok</strong> — all of which are chit fund or savings-pool platforms. Not one is in the OTT subscription-sharing space. Meanwhile, Subspace's Play Store listing markets <strong>"up to 80% off Netflix Premium"</strong> through public group credential sharing — a model that depends entirely on Netflix, Amazon Prime, and Spotify not enforcing their own Terms of Service, which prohibit sharing with non-household members.
+        <div class="callout callout-red">
+          ⚡ Netflix completed its password-sharing crackdown across 100+ countries between 2023–2025. India is in the rollout pipeline. When it lands, Subspace's top revenue-driving use case faces an immediate platform-enforced shutdown.
+        </div>
+      </div>
+    </div>
+
+    <div class="fb-row fb-problem">
+      <div class="fb-label-cell">
+        <span class="fb-label-icon">🔴</span>
+        <span class="fb-label-name problem">Problem</span>
+      </div>
+      <div class="fb-content-cell">
+        <strong>Using Porter's Five Forces:</strong> the "Threat of Substitutes" for Subspace's group sharing model is not another app — it's the OTT platforms' own enforcement mechanisms. Netflix's IP-detection, device-fingerprinting, and household verification are direct product-level threats to Subspace's grey-market access model. Once Netflix enforces household-only sharing in India, a public Subspace group with 5 members across 5 cities will be systematically blocked. The "80% off Netflix" card disappears overnight.
+
+        <table class="comp-table" style="margin-top:16px;">
+          <thead>
+            <tr>
+              <th>Actor</th>
+              <th>What They Threaten</th>
+              <th>Risk Level</th>
+              <th>Timeline</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Netflix India</strong></td>
+              <td>Household verification blocks cross-city group sharing</td>
+              <td><span class="badge badge-red">Critical</span></td>
+              <td>6–18 months</td>
+            </tr>
+            <tr>
+              <td><strong>Amazon Prime</strong></td>
+              <td>Device limits on shared IDs already causing user complaints</td>
+              <td><span class="badge badge-red">High</span></td>
+              <td>Active now</td>
+            </tr>
+            <tr>
+              <td><strong>CRED Mint</strong></td>
+              <td>Auto-tracks subscriptions for 12M+ premium users</td>
+              <td><span class="badge badge-amber">Medium</span></td>
+              <td>Active now</td>
+            </tr>
+            <tr>
+              <td><strong>PhonePe / GPay</strong></td>
+              <td>Subscription management as free feature in super-apps</td>
+              <td><span class="badge badge-amber">Medium</span></td>
+              <td>Active now</td>
+            </tr>
+            <tr>
+              <td><strong>myPaisaa / MoneyClub</strong></td>
+              <td>Overlap only in group-savings framing (not OTT)</td>
+              <td><span class="badge badge-green">Low</span></td>
+              <td>Not relevant</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="fb-row fb-ship">
+      <div class="fb-label-cell">
+        <span class="fb-label-icon">🚀</span>
+        <span class="fb-label-name ship">Ship Instead</span>
+      </div>
+      <div class="fb-content-cell">
+        <strong>Proactively pivot to "legally sanctioned plan orchestration" before the crackdown forces it.</strong>
+        <ul style="padding-left:20px; margin-top:10px; line-height:2.2;">
+          <li><strong>Feature only officially multi-user-friendly plans:</strong> YouTube Premium Family (6 slots), Spotify Family (6), Canva Teams, Microsoft 365 Family — all of which explicitly allow sharing. Subspace becomes the group billing coordinator for legal plans, not the credential-sharing broker.</li>
+          <li><strong>Approach OTT platforms as a reseller/distribution partner:</strong> "Subspace brings you verified group of N paying users — offer us a group billing API and we'll drive subscriptions for you." This converts Subspace from a TOS risk into a distribution channel for OTT platforms.</li>
+          <li><strong>Differentiate the "grey" from the "clean" SKU clearly in the app:</strong> Add a visible "Official Plan" badge on listings that use platform-sanctioned sharing. This lets users self-select risk, and positions Subspace as a transparent marketplace rather than a loophole aggregator.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ===== FB 5: COLLABORATIONS ===== -->
+  <div class="section-header">
+    <div class="fb-number">05</div>
+    <div class="section-header-right">
+      <span class="pillar-tag">Pillar — Potential Collaborations</span>
+      <h2 class="section-title">"India's First Subscription Marketplace" Has<br>No Door for Local Businesses to Walk Through.</h2>
+    </div>
+  </div>
+
+  <div class="feedback-grid">
+    <div class="fb-row fb-observed">
+      <div class="fb-label-cell">
+        <span class="fb-label-icon">👁</span>
+        <span class="fb-label-name observed">Observed</span>
+      </div>
+      <div class="fb-content-cell">
+        Subspace claims in its LinkedIn bio, About page, and multiple blog posts to be <strong>"India's first subscription marketplace for local subscription providers."</strong> But navigating the full website and app reveals <strong>zero CTA for local businesses to list</strong> — no "Partner with Us" page, no "List Your Subscription" button, no B2B landing page, no API documentation for businesses, and no mention of the onboarding process. The footer has three sections: Legal, Company (About / Contact / Blog), and Social — none business-facing.
+        <div class="callout callout-amber">
+          🔍 Searched: "subspace.money list your business", "subspace partner", "subspace B2B" — nothing. The supply side of their claimed marketplace is invisible to the very businesses they want to onboard.
+        </div>
+      </div>
+    </div>
+
+    <div class="fb-row fb-problem">
+      <div class="fb-label-cell">
+        <span class="fb-label-icon">🔴</span>
+        <span class="fb-label-name problem">Problem</span>
+      </div>
+      <div class="fb-content-cell">
+        <strong>A marketplace without a discoverable supply-side portal is just a catalogue — and a thin one at that.</strong> If the marketplace claim is real, the local businesses they want to list (gyms, tutors, meal-plan startups, co-working spaces) cannot find Subspace through search, cannot self-onboard, and likely don't even know Subspace exists as a distribution channel. This is Subspace's most defensible moat — proprietary local subscriptions that OTT platforms can't compete with — left entirely unrealized.
+        <p style="margin-top:10px;">Revenue implication: A local gym subscription at ₹1,200/month × 50 Subspace members × 10% commission = ₹72,000/year per gym partnership. With 500 local providers, that's ₹3.6Cr ARR from proprietary, ToS-safe, high-margin listings — with zero platform-shutdown risk.</p>
+      </div>
+    </div>
+
+    <div class="fb-row fb-ship">
+      <div class="fb-label-cell">
+        <span class="fb-label-icon">🚀</span>
+        <span class="fb-label-name ship">Ship Instead</span>
+      </div>
+      <div class="fb-content-cell">
+        <strong>Launch a self-serve "Provider Portal" at subspace.money/for-business in 60 days:</strong>
+        <ol style="padding-left:20px; margin-top:10px; line-height:2.2;">
+          <li><strong>Self-serve listing flow:</strong> Business name → service description → pricing tiers → member limit → UPI payout ID. Live in &lt;10 minutes.</li>
+          <li><strong>Acquisition incentive:</strong> First 3 months with 0% commission. After that, 8–12% on each collected member fee.</li>
+          <li><strong>Key collaboration targets:</strong>
+            <ul style="padding-left:16px; margin-top:6px; line-height:2.0;">
+              <li><strong>Cult.fit / Zepto Café / local gyms:</strong> Monthly wellness subscriptions (₹800–₹2,500/month) with group pricing through Subspace.</li>
+              <li><strong>EdTech tutors / coaching centers:</strong> Online class bundles sold as subscriptions — a completely untapped vertical.</li>
+              <li><strong>Meal kit startups (Eat.fit, Homely, etc.):</strong> Weekly/monthly meal plan subscriptions manageable through Subspace billing.</li>
+              <li><strong>Co-working spaces:</strong> Shared desk passes sold as group subscriptions to startups — perfect network-effect fit.</li>
+            </ul>
+          </li>
+          <li><strong>SEO play:</strong> Each local provider listing generates a unique, indexable page — turning the marketplace into an organic growth engine.</li>
+        </ol>
+        <div class="callout callout-blue">
+          💡 The deepest strategic point: Local subscription providers are Platform-TOS-proof. This is the ark Subspace needs to build before the Netflix crackdown flood arrives.
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<!-- ======================== SUMMARY ======================== -->
+<div class="summary-section">
+  <div style="max-width: 900px; margin: 0 auto; padding: 0 16px;">
+    <h2 class="summary-title">Five Feedbacks, One Strategic Arc</h2>
+    <p style="color: #a89f95; font-size: 15px; margin-bottom: 36px; max-width: 620px;">These five issues aren't isolated. They're all symptoms of the same underlying tension: Subspace has strong revenue traction but its product architecture, trust infrastructure, and GTM are not yet ready for the next order of magnitude.</p>
+    <div class="summary-grid">
+      <div class="summary-card">
+        <div class="summary-card-num">01 · UX</div>
+        <div class="summary-card-title">Credential Vault + Payment Escrow</div>
+        <div class="summary-card-fix">Replace chat-based credential sharing with encrypted vault + 48-hr escrow. Turns trust from liability to moat.</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-card-num">02 · Features</div>
+        <div class="summary-card-title">SMS/UPI Auto-Detection for Subscriptions</div>
+        <div class="summary-card-fix">Auto-detect recurring payments from SMS/UPI. Deliver the feature that's already being marketed but not built.</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-card-num">03 · GTM & ICPs</div>
+        <div class="summary-card-title">Separate the Subscription & Rental GTM</div>
+        <div class="summary-card-fix">Two distinct ICPs, two landing flows. Lead homepage with subscriptions (the ₹36.5Cr engine), not rentals.</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-card-num">04 · Competitors</div>
+        <div class="summary-card-title">Pivot to Officially-Sanctioned Plan Sharing</div>
+        <div class="summary-card-fix">Before Netflix enforces household rules in India: reposition as a legal group-billing orchestrator, not a loophole aggregator.</div>
+      </div>
+      <div class="summary-card" style="grid-column: span 2;">
+        <div class="summary-card-num">05 · Collaborations</div>
+        <div class="summary-card-title">Launch a Self-Serve Provider Portal — This is the Real Moat</div>
+        <div class="summary-card-fix">Build the supply side of the "India's first subscription marketplace" claim: a self-serve B2B portal for gyms, tutors, meal kits, and local services. Every local provider listing is ToS-safe, high-margin, and OTT-platform-proof. This is the ark Subspace needs before the Netflix crackdown arrives.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======================== FOOTER ======================== -->
+<div class="footer">
+  <span>SUBSPACE.MONEY — PRODUCT TEARDOWN · 2026</span>
+  <span>Research: subspace.money · Play Store · blogs.subspace.money · Tracxn · Live App Usage</span>
+</div>
+
+</body>
+</html>
